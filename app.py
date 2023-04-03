@@ -21,7 +21,6 @@ def serve(path):
         return send_from_directory(app.static_folder, 'index.html')
 
 
-
 @app.route('/search', methods=['GET'])
 async def search():
     search_term = request.args.get('q', '')
