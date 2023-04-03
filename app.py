@@ -7,7 +7,7 @@ from queryengine import query_response
 app = Flask(__name__)
 CORS(app)
 
-df = queryengine.load_df()
+# df = queryengine.load_df()
 
 
 @app.route('/')

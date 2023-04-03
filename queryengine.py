@@ -1,3 +1,4 @@
+import math
 import shutil
 from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
 import numpy as np
@@ -7,6 +8,7 @@ import tiktoken
 from dotenv import load_dotenv
 import os
 import pandas as pd
+import pyarrow.parquet as pq
 import sklearn
 
 
@@ -19,6 +21,22 @@ api_key = os.environ["OPENAI_KEY"]
 openai.api_key = api_key
 
 context_len = 1200
+
+
+def split():
+    table = pq.read_table('courses_embed_presplit.parquet')
+
+    # Get the total number of rows in the table
+    total_rows = table.num_rows
+
+    # Calculate the number of rows that each file should contain
+    rows_per_file = math.ceil(total_rows / 5)
+
+    # Read the original file in chunks of the size calculated above, and write each chunk to a new file
+    for i, start_row in enumerate(range(0, total_rows, rows_per_file)):
+        end_row = min(start_row + rows_per_file, total_rows)
+        chunk = table.slice(start_row, end_row)
+        pq.write_table(chunk, f'file_{i + 1}.parquet')
 
 
 def load_df():
@@ -110,14 +128,15 @@ async def query_response(q, df):
 
 
 if __name__ == '__main__':
+    split()
 
-    df = load_df()
-    while True:
-        user_input = input("Enter a message: ")
-
-        # Check for exit command
-        if user_input.lower() == "exit":
-            break
-
-        # print(create_context(user_input, df))
-        print(answer_chat(df, question=user_input, debug=False))
+    # df = load_df()
+    # while True:
+    #     user_input = input("Enter a message: ")
+    #
+    #     # Check for exit command
+    #     if user_input.lower() == "exit":
+    #         break
+    #
+    #     # print(create_context(user_input, df))
+    #     print(answer_chat(df, question=user_input, debug=False))
