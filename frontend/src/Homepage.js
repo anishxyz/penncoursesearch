@@ -7,21 +7,37 @@ import {
     Heading,
     Input,
     Text, useColorMode,
-    VStack,
+    VStack, Skeleton, Stack
 } from "@chakra-ui/react";
 import ColorModeSwitcher from "./ColorModeSwitcher";
 import axios from 'axios';
 
-const ResultCard = ({ title, description }) => {
-  return (
-    <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p="4" boxShadow="md">
-      <VStack align="start" spacing={2}>
-        <Text fontWeight="bold" fontSize="xl">
-          {title}
-        </Text>
-        <Text>{description}</Text>
-      </VStack>
-    </Box>
+const ResultCard = ({title, description}) => {
+    return (
+        <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p="4" boxShadow="md">
+            <VStack align="start" spacing={2}>
+                <Text fontWeight="bold" fontSize="xl">
+                    {title}
+                </Text>
+                <Text
+                    style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
+                >
+                    {description}
+                </Text>
+            </VStack>
+        </Box>
+    );
+};
+
+const LoadingCard = () => {
+    return (
+        <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p="4" boxShadow="md">
+            <Stack>
+                <Skeleton height='20px'/>
+                <Skeleton height='20px'/>
+                <Skeleton height='20px'/>
+            </Stack>
+        </Box>
   );
 };
 
@@ -29,29 +45,36 @@ const Homepage = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const {toggleColorMode} = useColorMode();
     const [searchResults, setSearchResults] = useState("");
+    const [lastSearchTerm, setLastSearchTerm] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSearch = (e) => {
         e.preventDefault();
         // Implement your search logic here
         console.log("Search term:", searchTerm);
+        console.log("searching for: " + searchTerm)
         fetchData(searchTerm);
+        setLastSearchTerm(searchTerm);
         setSearchTerm("");
     };
 
     const fetchData = async (searchTerm) => {
-        console.log("here")
-        try {
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/search`, {
-                params: {
-                    q: searchTerm,
-                },
-            });
-            console.log(response.data);
-            setSearchResults(response.data);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-    };
+    setIsLoading(true);
+    console.log("fetching data....")
+    try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/search`, {
+            params: {
+                q: searchTerm,
+            },
+        });
+        console.log(response.data);
+        setSearchResults(response.data);
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    } finally {
+        setIsLoading(false);
+    }
+};
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -94,14 +117,20 @@ const Homepage = () => {
                                 variant="filled"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                focusBorderColor="orange"
+                                _focus={{
+                                    boxShadow: '0 0 0 1px orange',
+                                }}
                             />
                         </form>
                     </Center>
                 </Flex>
                 <Box pt="10" w="100%">
-                    {searchResults && (
-                        <ResultCard title="Search Result" description={searchResults}/>
-                    )}
+                    {isLoading ? (
+                        <LoadingCard/>
+                    ) : searchResults ? (
+                        <ResultCard title={lastSearchTerm} description={searchResults}/>
+                    ) : null}
                 </Box>
             </VStack>
             <Box>

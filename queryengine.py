@@ -98,9 +98,8 @@ def answer_chat(
         return ""
 
 
-async def query_response(q):
+async def query_response(q, df):
     try:
-        df = load_df()
         ans = answer_chat(df, question=q, debug=False)
         print(ans)
         return ans
