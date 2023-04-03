@@ -6,7 +6,7 @@ from flask_cors import CORS
 from queryengine import query_response
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='frontend/public')
 CORS(app)
 
 # df = queryengine.load_df()
