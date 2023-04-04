@@ -2,26 +2,24 @@ import os
 
 import queryengine
 from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from queryengine import query_response
 
 
-app = Flask(__name__, static_folder='frontend/public')
+app = Flask(__name__, static_folder='frontend/build', static_url_path='')
 CORS(app)
 
 # df = queryengine.load_df()
 
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
+@app.route('/')
+@cross_origin()
 def serve(path):
-    if path != "" and os.path.exists(app.static_folder + '/' + path):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
+    return send_from_directory(app.static_folder, 'index.html')
 
 
 @app.route('/search', methods=['GET'])
+@cross_origin()
 async def search():
     search_term = request.args.get('q', '')
     # Implement your search logic here, using search_term
