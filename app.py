@@ -15,6 +15,7 @@ CORS(app)
 @app.route('/')
 @cross_origin()
 def serve():
+    print("here at route")
     return send_from_directory(app.static_folder, 'index.html')
 
 
