@@ -9,7 +9,7 @@ from queryengine import query_response
 app = Flask(__name__, static_folder='frontend/build', static_url_path='')
 CORS(app)
 
-# df = queryengine.load_df()
+df = queryengine.load_df()
 
 
 @app.route('/')
@@ -25,9 +25,9 @@ async def search():
     search_term = request.args.get('q', '')
     # Implement your search logic here, using search_term
     # For example, you can filter a list of courses based on the search term:
-    # results = await query_response(search_term, df)
+    results = await query_response(search_term, df)
     print("got it!")
-    return jsonify("hello")
+    return jsonify(results)
 
 
 if __name__ == '__main__':
