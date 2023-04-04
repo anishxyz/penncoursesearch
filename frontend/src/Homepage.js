@@ -62,7 +62,7 @@ const Homepage = () => {
     setIsLoading(true);
     console.log("fetching data....")
     try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/search`, {
+        const response = await axios.get('https://penncoursesearch.herokuapp.com/search', {
             params: {
                 q: searchTerm,
             },
