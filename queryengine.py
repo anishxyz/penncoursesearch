@@ -47,7 +47,7 @@ def load_df():
     # df.to_parquet('courses_embed.parquet')
 
     # Read DataFrame from Parquet file
-    df = pd.read_parquet('courses_embed.parquet')
+    df = pd.read_parquet('embed_1.parquet')
     return df
 
 
