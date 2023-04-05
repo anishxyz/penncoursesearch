@@ -1,6 +1,5 @@
 import math
 import shutil
-
 import certifi
 from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
 import numpy as np
@@ -11,7 +10,6 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 import pyarrow.parquet as pq
-from annoy import AnnoyIndex
 
 # set up from environment
 from pymongo import MongoClient
