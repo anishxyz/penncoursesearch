@@ -17,7 +17,7 @@ sitemap_section = soup.find("div", id="textcontainer")
 # Find all the headers for the letters of the alphabet A-Z
 headers = sitemap_section.find_all("h2", class_="letternav-head")
 
-filename = "courses.csv"
+filename = "data/courses.csv"
 
 # Check if the file already exists
 if os.path.exists(filename):

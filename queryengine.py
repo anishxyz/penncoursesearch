@@ -1,5 +1,7 @@
 import math
 import shutil
+
+import certifi
 from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
 import numpy as np
 import openai
@@ -9,10 +11,11 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 import pyarrow.parquet as pq
-import sklearn
-
+from annoy import AnnoyIndex
 
 # set up from environment
+from pymongo import MongoClient
+
 load_dotenv()
 tokenizer = tiktoken.get_encoding("cl100k_base")
 
@@ -20,23 +23,13 @@ tokenizer = tiktoken.get_encoding("cl100k_base")
 api_key = os.environ["OPENAI_KEY"]
 openai.api_key = api_key
 
+# mongo setup
+mongodb_uri = os.getenv('MONGODB_URI')
+client = MongoClient(mongodb_uri, tlsCAFile=certifi.where())
+db = client['course-embeddings']
+collection = db['catalog']
+
 context_len = 1200
-
-
-def split():
-    table = pq.read_table('courses_embed_presplit.parquet')
-
-    # Get the total number of rows in the table
-    total_rows = table.num_rows
-
-    # Calculate the number of rows that each file should contain
-    rows_per_file = math.ceil(total_rows / 5)
-
-    # Read the original file in chunks of the size calculated above, and write each chunk to a new file
-    for i, start_row in enumerate(range(0, total_rows, rows_per_file)):
-        end_row = min(start_row + rows_per_file, total_rows)
-        chunk = table.slice(start_row, end_row)
-        pq.write_table(chunk, f'file_{i + 1}.parquet')
 
 
 def load_df():
@@ -51,23 +44,33 @@ def load_df():
     return df
 
 
-def create_context(question, df, max_len=context_len):
+async def create_context_mongodb(question, max_len=context_len):
     """
-    Create a context for a question by finding the most similar context from the dataframe
+    Create a context for a question by finding the most similar context from the documents in the collection
     """
 
     # Get the embeddings for the question
     q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
 
+    # Get the documents from the MongoDB collection
+    docs = list(collection.find({}))
+
     # Get the distances from the embeddings
-    df['distances'] = distances_from_embeddings(q_embeddings, df['Embedding'].values, distance_metric='cosine')
+    distances = distances_from_embeddings(q_embeddings, [doc['embedding'] for doc in docs], distance_metric='cosine')
+
+    # Add distances to each document
+    for i, doc in enumerate(docs):
+        doc['distances'] = distances[i]
+
+    # Sort the documents by distance
+    sorted_docs = sorted(docs, key=lambda x: x['distances'], reverse=False)
 
     returns = []
     cur_len = 0
 
-    # Sort by distance and add the text to the context until the context is too long
-    for i, row in df.sort_values('distances', ascending=True).iterrows():
-        n_tokens = len(tokenizer.encode(row['ALL']))
+    # Add the text to the context until the context is too long
+    for doc in sorted_docs:
+        n_tokens = len(tokenizer.encode(doc['combined']))
         cur_len += n_tokens
 
         # If the context is too long, break
@@ -75,14 +78,13 @@ def create_context(question, df, max_len=context_len):
             break
 
         # Else add it to the text that is being returned
-        returns.append(f"{row['ALL']}")
+        returns.append(f"{doc['combined']}")
 
     # Return the context
     return "\n\n###\n\n".join(returns)
 
 
-def answer_chat(
-    df,
+async def answer_chat(
     model="gpt-3.5-turbo",
     question="?",
     debug=False,
@@ -90,10 +92,7 @@ def answer_chat(
     """
     Answer a question based on the most similar context from the dataframe texts
     """
-    context = create_context(
-        question,
-        df,
-    )
+    context = create_context_mongodb(question)
     # If debug, print the raw model response
     if debug:
         print("Context:\n" + context)
@@ -116,9 +115,9 @@ def answer_chat(
         return ""
 
 
-async def query_response(q, df):
+async def query_response(q):
     try:
-        ans = answer_chat(df, question=q, debug=False)
+        ans = await answer_chat(question=q, debug=False)
         print(ans)
         return ans
 
@@ -127,16 +126,44 @@ async def query_response(q, df):
         return "An error occurred"
 
 
-if __name__ == '__main__':
-    split()
+# def build_annoy_index_from_mongodb(index_file, vector_length):
+#     annoy_index = AnnoyIndex(vector_length, 'angular')
+#
+#     cursor = collection.find({}, {"embedding": 1})
+#     mapping = {}
+#     i = 0
+#
+#     for doc in cursor:
+#         mapping[i] = doc["_id"]
+#         annoy_index.add_item(i, doc["embedding"])
+#         i += 1
+#
+#     annoy_index.build(25)  # Number of trees; higher values improve search accuracy at the cost of build time.
+#     annoy_index.save(index_file)
+#
+#     return annoy_index, mapping
+#
+#
+# def search_annoy_index(question, annoy_index, mapping, num_neighbors=10):
+#     q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
+#     q_embeddings = np.array(q_embeddings)
+#
+#     nearest_indices = annoy_index.get_nns_by_vector(q_embeddings, num_neighbors)
+#     nearest_ids = [mapping[idx] for idx in nearest_indices]
+#
+#     # Fetch the matched documents from MongoDB
+#     nearest_documents = collection.find({"_id": {"$in": nearest_ids}})
+#
+#     return list(nearest_documents)
 
-    # df = load_df()
-    # while True:
-    #     user_input = input("Enter a message: ")
-    #
-    #     # Check for exit command
-    #     if user_input.lower() == "exit":
-    #         break
-    #
-    #     # print(create_context(user_input, df))
-    #     print(answer_chat(df, question=user_input, debug=False))
+
+if __name__ == '__main__':
+    while True:
+        user_input = input("Enter a message: ")
+
+        # Check for exit command
+        if user_input.lower() == "exit":
+            break
+
+        # print(create_context(user_input, df))
+        print(answer_chat(question=user_input, debug=True))

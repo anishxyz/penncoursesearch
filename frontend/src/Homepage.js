@@ -51,7 +51,6 @@ const Homepage = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         // Implement your search logic here
-        console.log("Search term:", searchTerm);
         console.log("searching for: " + searchTerm)
         fetchData(searchTerm);
         setLastSearchTerm(searchTerm);
@@ -59,22 +58,23 @@ const Homepage = () => {
     };
 
     const fetchData = async (searchTerm) => {
-    setIsLoading(true);
-    console.log("fetching data....")
-    try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/search`, {
-            params: {
-                q: searchTerm,
-            },
-        });
-        console.log(response.data);
-        setSearchResults(response.data);
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    } finally {
-        setIsLoading(false);
-    }
-};
+        setIsLoading(true);
+        console.log("fetching data....")
+        try {
+            console.log(`${process.env.REACT_APP_API_URL}/search`)
+            const response = await axios.get(`${process.env.REACT_APP_API_URL}/search`, {
+                params: {
+                    q: searchTerm,
+                },
+            });
+            console.log(response.data);
+            setSearchResults(response.data);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
         const handleKeyDown = (e) => {

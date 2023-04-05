@@ -46,3 +46,6 @@ urllib3==1.26.15
 Werkzeug==2.2.3
 yarl==1.8.2
 gunicorn==20.1.0
+
+beautifulsoup4~=4.12.0
+pymongo~=4.3.3

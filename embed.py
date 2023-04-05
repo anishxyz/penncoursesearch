@@ -28,9 +28,9 @@ tot_tokens = 0
 # Check if the file already exists
 if os.path.exists(filename):
     # If it does, make a copy of the file
-    shutil.copyfile(filename, "courses_embed.csv")
+    shutil.copyfile(filename, "data/courses_embed.csv")
     # Set the filename to the copy
-    filename = "courses_embed.csv"
+    filename = "data/courses_embed.csv"
 
 # Load the CSV file
 with open(filename, "r", newline="", encoding="utf-8") as csvfile:
