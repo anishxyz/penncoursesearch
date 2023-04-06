@@ -4,12 +4,6 @@ import openai
 import tiktoken
 from dotenv import load_dotenv
 import os
-import numpy as np
-import csv
-import pandas as pd
-import pyarrow.parquet as pq
-import math
-import shutil
 
 # set up from environment
 from pymongo import MongoClient
