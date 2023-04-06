@@ -16,15 +16,14 @@ import axios from 'axios';
 
 const ResultCard = ({ title, description }) => {
   const [transform, setTransform] = useState('perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)');
-  const aggr = 70; // increase to make more subtle, decrease for more jumpy
+  const aggr = 80; // increase to make more subtle, decrease for more jumpy
+    const trans = (x, y, s) => `perspective(1000px) rotateX(${x}deg) rotateY(${y}deg) scale(${s})`;
 
   const calc = (x, y) => [
     -(y - window.innerHeight / 2) / aggr,
     (x - window.innerWidth / 2) / aggr,
     1.05,
   ];
-
-  const trans = (x, y, s) => `perspective(1000px) rotateX(${x}deg) rotateY(${y}deg) scale(${s})`;
 
   const handleMouseMove = (e) => {
     const [x, y, s] = calc(e.clientX, e.clientY);
