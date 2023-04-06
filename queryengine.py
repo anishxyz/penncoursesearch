@@ -1,15 +1,15 @@
-import math
-import shutil
 import certifi
 from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
-import numpy as np
 import openai
-import csv
 import tiktoken
 from dotenv import load_dotenv
 import os
+import numpy as np
+import csv
 import pandas as pd
 import pyarrow.parquet as pq
+import math
+import shutil
 
 # set up from environment
 from pymongo import MongoClient
@@ -28,18 +28,6 @@ db = client['course-embeddings']
 collection = db['catalog']
 
 context_len = 1200
-
-
-def load_df():
-    # df = pd.read_csv('courses_embed.csv', index_col=0)
-    # df['Embedding'] = df['Embedding'].apply(eval).apply(np.array)
-    #
-    # # Save DataFrame as a Parquet file
-    # df.to_parquet('courses_embed.parquet')
-
-    # Read DataFrame from Parquet file
-    df = pd.read_parquet('embed_1.parquet')
-    return df
 
 
 async def create_context_mongodb(question, max_len=context_len):
@@ -122,37 +110,6 @@ async def query_response(q):
     except Exception as e:
         print(e)
         return "An error occurred"
-
-
-# def build_annoy_index_from_mongodb(index_file, vector_length):
-#     annoy_index = AnnoyIndex(vector_length, 'angular')
-#
-#     cursor = collection.find({}, {"embedding": 1})
-#     mapping = {}
-#     i = 0
-#
-#     for doc in cursor:
-#         mapping[i] = doc["_id"]
-#         annoy_index.add_item(i, doc["embedding"])
-#         i += 1
-#
-#     annoy_index.build(25)  # Number of trees; higher values improve search accuracy at the cost of build time.
-#     annoy_index.save(index_file)
-#
-#     return annoy_index, mapping
-#
-#
-# def search_annoy_index(question, annoy_index, mapping, num_neighbors=10):
-#     q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
-#     q_embeddings = np.array(q_embeddings)
-#
-#     nearest_indices = annoy_index.get_nns_by_vector(q_embeddings, num_neighbors)
-#     nearest_ids = [mapping[idx] for idx in nearest_indices]
-#
-#     # Fetch the matched documents from MongoDB
-#     nearest_documents = collection.find({"_id": {"$in": nearest_ids}})
-#
-#     return list(nearest_documents)
 
 
 if __name__ == '__main__':
