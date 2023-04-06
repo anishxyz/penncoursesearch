@@ -9,49 +9,50 @@ import {
     Text, useColorMode,
     VStack, Skeleton, Stack, IconButton
 } from "@chakra-ui/react";
-import { InfoIcon } from "@chakra-ui/icons";
+import {InfoIcon} from "@chakra-ui/icons";
 import ColorModeSwitcher from "./ColorModeSwitcher";
 import InfoModal from "./InfoModal";
 import axios from 'axios';
 
-const ResultCard = ({ title, description }) => {
-  const [transform, setTransform] = useState('perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)');
-  const aggr = 80; // increase to make more subtle, decrease for more jumpy
+const ResultCard = ({title, description}) => {
+    const [transform, setTransform] = useState('perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)');
+    const aggr = 80; // increase to make more subtle, decrease for more jumpy
+
     const trans = (x, y, s) => `perspective(1000px) rotateX(${x}deg) rotateY(${y}deg) scale(${s})`;
 
-  const calc = (x, y) => [
-    -(y - window.innerHeight / 2) / aggr,
-    (x - window.innerWidth / 2) / aggr,
-    1.05,
-  ];
+    const calc = (x, y) => [
+        -(y - window.innerHeight / 2) / aggr,
+        (x - window.innerWidth / 2) / aggr,
+        1.02, // handles scaling
+    ];
 
-  const handleMouseMove = (e) => {
-    const [x, y, s] = calc(e.clientX, e.clientY);
-    setTransform(trans(x, y, s));
-  };
+    const handleMouseMove = (e) => {
+        const [x, y, s] = calc(e.clientX, e.clientY);
+        setTransform(trans(x, y, s));
+    };
 
-  const handleMouseLeave = () => {
-    setTransform('perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)');
-  };
+    const handleMouseLeave = () => {
+        setTransform('perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)');
+    };
 
-  return (
-    <div
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ transform }}
-    >
-      <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p="4" boxShadow="md">
-        <VStack align="start" spacing={2}>
-          <Text fontWeight="bold" fontSize="xl">
-            {title}
-          </Text>
-          <Text style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-            {description}
-          </Text>
-        </VStack>
-      </Box>
-    </div>
-  );
+    return (
+        <div
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={{transform}}
+        >
+            <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p="4" boxShadow="md">
+                <VStack align="start" spacing={2}>
+                    <Text fontWeight="bold" fontSize="xl">
+                        {title}
+                    </Text>
+                    <Text style={{whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
+                        {description}
+                    </Text>
+                </VStack>
+            </Box>
+        </div>
+    );
 };
 
 
@@ -64,13 +65,13 @@ const LoadingCard = () => {
                 <Skeleton height='20px'/>
             </Stack>
         </Box>
-  );
+    );
 };
 
 const Homepage = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const {toggleColorMode} = useColorMode();
-    const { colorMode } = useColorMode();
+    const {colorMode} = useColorMode();
     const [searchResults, setSearchResults] = useState("");
     const [lastSearchTerm, setLastSearchTerm] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -132,8 +133,8 @@ const Homepage = () => {
             display="flex"
             flexDirection="column"
             justifyContent="space-between"
-            p={{ base: 4, md: 0 }}
-            maxW={{ base: "90%", md: "container.md" }}
+            p={{base: 4, md: 0}}
+            maxW={{base: "90%", md: "container.md"}}
         >
             <Flex position="fixed" top={4} right={4} align="center">
                 <IconButton
@@ -148,7 +149,7 @@ const Homepage = () => {
                 />
                 <ColorModeSwitcher/>
             </Flex>
-            <InfoModal isOpen={isInfoModalOpen} onClose={closeInfoModal} />
+            <InfoModal isOpen={isInfoModalOpen} onClose={closeInfoModal}/>
             <Box></Box>
             <VStack>
                 <Heading
