@@ -96,6 +96,8 @@ const Homepage = () => {
             display="flex"
             flexDirection="column"
             justifyContent="space-between"
+            p={{ base: 4, md: 0 }}
+            maxW={{ base: "90%", md: "container.md" }}
         >
             <ColorModeSwitcher/>
             <Box></Box>
