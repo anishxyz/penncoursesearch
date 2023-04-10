@@ -67,7 +67,9 @@ async def create_context_parquet(question):
     global_df['distances'] = distances_from_embeddings(q_embeddings, global_df['embedding'].values, distance_metric='cosine')
 
     returns = await find_courses(question)
+    print("Course Matches")
     print(returns)
+
     cur_len = 0
 
     # Sort by distance and add the text to the context until the context is too long
