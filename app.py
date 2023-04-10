@@ -38,7 +38,8 @@ def initialize_app():
 
 
 if __name__ == '__main__':
-    initialize_app()
+    app.run()
+    # initialize_app()
 
 
 
