@@ -151,7 +151,7 @@ async def answer_chat(
         print("\n\n")
 
     try:
-        p = f'You are a bot to help students find courses from the University of Pennsylvania Course Catalog. Master degree courses have a course code of 5000 or more. Prioritize recommending lower level classes when it makes sense or give both high and low level classes. I will include context for each query to help you. \n\nContext: {context}\n\n---\n\nQuestion: {question} Recommend courses based on the question.\nAnswer:'
+        p = f'You are a bot to help students find courses from the University of Pennsylvania Course Catalog. Master degree courses have a course code of 5000 or more. Prioritize recommending lower level classes when it makes sense or give both high and low level classes. I will include context for each query to help you. \n\nContext: {context}\n\n---\n\nQuestion: {question} Recommend courses based on the question at UPenn.\nAnswer:'
         # Create a completions using the question and context
         response = openai.ChatCompletion.create(
             model=model,
