@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS, cross_origin
-from queryengine import query_response
+from queryengine import query_response, cache_course_embeddings
 
 
 app = Flask(__name__, static_folder='frontend/build/', static_url_path='')
@@ -11,7 +11,6 @@ CORS(app)
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    print("here at route")
     if path != "" and os.path.exists(app.static_folder + '/' + path):
         return send_from_directory(app.static_folder, path)
     else:
@@ -29,8 +28,17 @@ async def search():
     return jsonify(results)
 
 
-if __name__ == '__main__':
+def initialize_app():
+    print("Caching course embeddings...")
+    cache_course_embeddings()
+    print("Course embeddings cached.")
+
+    # Start the Flask application
     app.run()
+
+
+if __name__ == '__main__':
+    initialize_app()
 
 
 

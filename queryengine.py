@@ -4,6 +4,8 @@ import openai
 import tiktoken
 from dotenv import load_dotenv
 import os
+import redis
+import json
 
 # set up from environment
 from pymongo import MongoClient
@@ -22,6 +24,76 @@ db = client['course-embeddings']
 collection = db['catalog']
 
 context_len = 1200
+
+redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+redis_client = redis.Redis.from_url(redis_url, decode_responses=True)
+
+
+def cache_course_embeddings():
+    # Get the documents from the MongoDB collection
+    docs = list(collection.find({}))
+
+    # Store the 'combined' and 'embedding' fields in Redis using the document id as the key
+    for doc in docs:
+        redis_key = f"course:{doc['_id']}"
+        data_to_cache = {
+            'combined': doc['combined'],
+            'embedding': doc['embedding']
+        }
+        redis_client.set(redis_key, json.dumps(data_to_cache))
+
+
+def get_cached_course_data():
+    # Get all Redis keys starting with "course:"
+    keys = redis_client.keys("course:*")
+
+    # Get the documents from Redis
+    docs = []
+    for key in keys:
+        doc_data = json.loads(redis_client.get(key))
+        docs.append(doc_data)
+
+    return docs
+
+
+async def create_context_redis(question, max_len=context_len):
+    """
+    Create a context for a question by finding the most similar context from the documents in the Redis cache
+    """
+
+    # Get the embeddings for the question
+    q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
+
+    # Get the documents from the Redis cache
+    docs = get_cached_course_data()
+
+    # Get the distances from the embeddings
+    distances = distances_from_embeddings(q_embeddings, [doc['embedding'] for doc in docs], distance_metric='cosine')
+
+    # Add distances to each document
+    for i, doc in enumerate(docs):
+        doc['distances'] = distances[i]
+
+    # Sort the documents by distance
+    sorted_docs = sorted(docs, key=lambda x: x['distances'], reverse=False)
+
+    returns = []
+    cur_len = 0
+
+    # Add the text to the context until the context is too long
+    for doc in sorted_docs:
+        n_tokens = len(tokenizer.encode(doc['combined']))
+        cur_len += n_tokens
+
+        # If the context is too long, break
+        if cur_len > max_len:
+            break
+
+        # Else add it to the text that is being returned
+        returns.append(f"{doc['combined']}")
+
+    # Return the context
+    return "\n\n###\n\n".join(returns)
 
 
 async def create_context_mongodb(question, max_len=context_len):
@@ -72,7 +144,7 @@ async def answer_chat(
     """
     Answer a question based on the most similar context from the dataframe texts
     """
-    context = create_context_mongodb(question)
+    context = create_context_redis(question)
     # If debug, print the raw model response
     if debug:
         print("Context:\n" + context)
