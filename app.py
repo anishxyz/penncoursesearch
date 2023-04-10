@@ -28,14 +28,14 @@ async def search():
     return jsonify(results)
 
 
-async def initialize_redis():
+def initialize_redis():
     print("Caching course embeddings...")
     await cache_course_embeddings()
     print("Course embeddings cached.")
 
 
 if __name__ == '__main__':
-    await initialize_redis()
+    initialize_redis()
     app.run()
 
 
