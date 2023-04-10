@@ -16,7 +16,7 @@ import axios from 'axios';
 
 const ResultCard = ({title, description}) => {
     const [transform, setTransform] = useState('perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)');
-    const aggr = 80; // increase to make more subtle, decrease for more jumpy
+    const aggr = 90; // increase to make more subtle, decrease for more jumpy
 
     const trans = (x, y, s) => `perspective(1000px) rotateX(${x}deg) rotateY(${y}deg) scale(${s})`;
 

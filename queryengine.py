@@ -1,6 +1,7 @@
 import asyncio
-
+import re
 import certifi
+import pandas as pd
 from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
 import openai
 import tiktoken
@@ -19,123 +20,66 @@ tokenizer = tiktoken.get_encoding("cl100k_base")
 api_key = os.environ["OPENAI_KEY"]
 openai.api_key = api_key
 
-# mongo setup
-mongodb_uri = os.getenv('MONGODB_URI')
-client = MongoClient(mongodb_uri, tlsCAFile=certifi.where())
-db = client['course-embeddings']
-collection = db['catalog']
-
 context_len = 1200
 
-redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-redis_client = redis.Redis.from_url(redis_url, decode_responses=True)
+global_df = pd.DataFrame()
 
 
-async def cache_course_embeddings():
-    # Get the documents from the MongoDB collection
-    docs = list(collection.find({}))
-
-    # Store the 'combined' and 'embedding' fields in Redis using the document id as the key
-    for doc in docs:
-        redis_key = f"course:{doc['_id']}"
-        data_to_cache = {
-            'combined': doc['combined'],
-            'embedding': doc['embedding']
-        }
-        redis_client.set(redis_key, json.dumps(data_to_cache))
+async def cache_embeddings():
+    data = pd.read_parquet('data/courses_embed.parquet')
+    global global_df
+    global_df = data
 
 
-def get_cached_course_data():
-    # Get all Redis keys starting with "course:"
-    keys = redis_client.keys("course:*")
+async def find_courses(input_question):
+    course_pattern = r'(?i)([A-Za-z]{2,6})\s?([0-9]{3,4})'
+    courses_in_question = set()
+    for match in re.finditer(course_pattern, input_question):
+        course = match.group(1) + ' ' + match.group(2)
+        courses_in_question.add(course.upper())
 
-    # Get the documents from Redis
-    docs = []
-    for key in keys:
-        doc_data = json.loads(redis_client.get(key))
-        docs.append(doc_data)
+    matching_context = []
 
-    return docs
+    # Loop through each course in courses_in_question
+    for course in courses_in_question:
+        # Use str.contains() to check if course is a substring of 'id'
+        matching = global_df['combined'][global_df['id'].str.contains(course)]
+        # Add the matching ids to the array
+        matching_context += matching.tolist()
+
+    return matching_context
 
 
-async def create_context_redis(question, max_len=context_len):
+async def create_context_parquet(question):
     """
-    Create a context for a question by finding the most similar context from the documents in the Redis cache
+    Create a context for a question by finding the most similar context from the dataframe
     """
 
     # Get the embeddings for the question
     q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
 
-    # Get the documents from the Redis cache
-    docs = get_cached_course_data()
-
     # Get the distances from the embeddings
-    distances = distances_from_embeddings(q_embeddings, [doc['embedding'] for doc in docs], distance_metric='cosine')
+    global_df['distances'] = distances_from_embeddings(q_embeddings, global_df['embedding'].values, distance_metric='cosine')
 
-    # Add distances to each document
-    for i, doc in enumerate(docs):
-        doc['distances'] = distances[i]
-
-    # Sort the documents by distance
-    sorted_docs = sorted(docs, key=lambda x: x['distances'], reverse=False)
-
-    returns = []
+    returns = await find_courses(question)
+    print(returns)
     cur_len = 0
 
-    # Add the text to the context until the context is too long
-    for doc in sorted_docs:
-        n_tokens = len(tokenizer.encode(doc['combined']))
-        cur_len += n_tokens
+    # Sort by distance and add the text to the context until the context is too long
+    for i, row in global_df.sort_values('distances', ascending=True).iterrows():
+
+        # Add the length of the text to the current length
+        cur_len += row['tokens'] + 4
 
         # If the context is too long, break
-        if cur_len > max_len:
+        if cur_len > context_len:
             break
 
         # Else add it to the text that is being returned
-        returns.append(f"{doc['combined']}")
+        returns.append(f"{row['combined']}")
 
     # Return the context
     return "\n\n###\n\n".join(returns)
-
-
-# async def create_context_mongodb(question, max_len=context_len):
-#     """
-#     Create a context for a question by finding the most similar context from the documents in the collection
-#     """
-#
-#     # Get the embeddings for the question
-#     q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
-#
-#     # Get the documents from the MongoDB collection
-#     docs = list(collection.find({}))
-#
-#     # Get the distances from the embeddings
-#     distances = distances_from_embeddings(q_embeddings, [doc['embedding'] for doc in docs], distance_metric='cosine')
-#
-#     # Add distances to each document
-#     for i, doc in enumerate(docs):
-#         doc['distances'] = distances[i]
-#
-#     # Sort the documents by distance
-#     sorted_docs = sorted(docs, key=lambda x: x['distances'], reverse=False)
-#
-#     returns = []
-#     cur_len = 0
-#
-#     # Add the text to the context until the context is too long
-#     for doc in sorted_docs:
-#         n_tokens = len(tokenizer.encode(doc['combined']))
-#         cur_len += n_tokens
-#
-#         # If the context is too long, break
-#         if cur_len > max_len:
-#             break
-#
-#         # Else add it to the text that is being returned
-#         returns.append(f"{doc['combined']}")
-#
-#     # Return the context
-#     return "\n\n###\n\n".join(returns)
 
 
 async def answer_chat(
@@ -146,14 +90,14 @@ async def answer_chat(
     """
     Answer a question based on the most similar context from the dataframe texts
     """
-    context = await create_context_redis(question)
+    context = await create_context_parquet(question)
     # If debug, print the raw model response
     if debug:
         print("Context:\n" + context)
         print("\n\n")
 
     try:
-        p = f'You are a bot to help students find courses from the University of Pennsylvania Course Catalog. Master degree courses have a course code of 5000 or more. Prioritize recommending lower level classes when it makes sense or give both high and low level classes. I will include context for each query to help you. \n\nContext: {context}\n\n---\n\nQuestion: {question} Recommend courses based on the question at UPenn.\nAnswer:'
+        p = f'You are a bot to help students find courses from the University of Pennsylvania Course Catalog. Master degree courses have a course code of 5000 or more. Prioritize recommending lower level classes when it makes sense or give both high and low level classes. I will include context for each query to help you. \n\nContext: {context}\n\n---\n\nQuestion: {question} Answer the question with detail and descriptions on courses. Use lists when it makes sense \nAnswer:'
         # Create a completions using the question and context
         response = openai.ChatCompletion.create(
             model=model,
@@ -176,13 +120,13 @@ async def query_response(q):
         return ans
 
     except Exception as e:
+        print(global_df)
         print(e)
         return "An error occurred"
 
 
-def start():
-    liiii = list(collection.find({}))
-    print(liiii)
+async def start():
+    cache_embeddings()
 
     while True:
         user_input = input("Enter a message: ")
@@ -191,10 +135,10 @@ def start():
         if user_input.lower() == "exit":
             break
 
-        # print(create_context(user_input, df))
-        print(answer_chat(question=user_input, debug=True))
+        resp = await answer_chat(question=user_input, debug=True)
+        print(resp)
 
 
 if __name__ == '__main__':
-    start()
+    asyncio.run(start())
 
