@@ -28,18 +28,16 @@ async def search():
     return jsonify(results)
 
 
-def initialize_app():
+async def initialize_redis():
     print("Caching course embeddings...")
-    # cache_course_embeddings()
+    await cache_course_embeddings()
     print("Course embeddings cached.")
-
-    # Start the Flask application
-    app.run()
 
 
 if __name__ == '__main__':
+    await initialize_redis()
     app.run()
-    # initialize_app()
+
 
 
 

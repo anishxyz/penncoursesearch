@@ -29,7 +29,7 @@ redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 redis_client = redis.Redis.from_url(redis_url, decode_responses=True)
 
 
-def cache_course_embeddings():
+async def cache_course_embeddings():
     # Get the documents from the MongoDB collection
     docs = list(collection.find({}))
 
@@ -144,14 +144,14 @@ async def answer_chat(
     """
     Answer a question based on the most similar context from the dataframe texts
     """
-    context = create_context_redis(question)
+    context = await create_context_redis(question)
     # If debug, print the raw model response
     if debug:
         print("Context:\n" + context)
         print("\n\n")
 
     try:
-        p = f'You are a bot to help students find courses from the University of Rochesterite Course Catalog. Master degree courses have a course code of 5000 or more. Prioritize recommending lower level classes when it makes sense or give both high and low level classes. I will include context for each query to help you. \n\nContext: {context}\n\n---\n\nQuestion: {question} Recommend courses based on the question.\nAnswer:'
+        p = f'You are a bot to help students find courses from the University of Pennsylvania Course Catalog. Master degree courses have a course code of 5000 or more. Prioritize recommending lower level classes when it makes sense or give both high and low level classes. I will include context for each query to help you. \n\nContext: {context}\n\n---\n\nQuestion: {question} Recommend courses based on the question.\nAnswer:'
         # Create a completions using the question and context
         response = openai.ChatCompletion.create(
             model=model,
