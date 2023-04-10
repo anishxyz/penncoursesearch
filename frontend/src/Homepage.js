@@ -88,7 +88,7 @@ const Homepage = () => {
 
     const fetchData = async (searchTerm) => {
         setIsLoading(true);
-        console.log("fetching data....")
+        console.log("Fetching courses....")
         try {
             console.log(`${process.env.REACT_APP_API_URL}/search`)
             const response = await axios.get(`${process.env.REACT_APP_API_URL}/search`, {

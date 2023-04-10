@@ -96,6 +96,46 @@ async def create_context_redis(question, max_len=context_len):
     return "\n\n###\n\n".join(returns)
 
 
+# async def create_context_mongodb(question, max_len=context_len):
+#     """
+#     Create a context for a question by finding the most similar context from the documents in the collection
+#     """
+#
+#     # Get the embeddings for the question
+#     q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
+#
+#     # Get the documents from the MongoDB collection
+#     docs = list(collection.find({}))
+#
+#     # Get the distances from the embeddings
+#     distances = distances_from_embeddings(q_embeddings, [doc['embedding'] for doc in docs], distance_metric='cosine')
+#
+#     # Add distances to each document
+#     for i, doc in enumerate(docs):
+#         doc['distances'] = distances[i]
+#
+#     # Sort the documents by distance
+#     sorted_docs = sorted(docs, key=lambda x: x['distances'], reverse=False)
+#
+#     returns = []
+#     cur_len = 0
+#
+#     # Add the text to the context until the context is too long
+#     for doc in sorted_docs:
+#         n_tokens = len(tokenizer.encode(doc['combined']))
+#         cur_len += n_tokens
+#
+#         # If the context is too long, break
+#         if cur_len > max_len:
+#             break
+#
+#         # Else add it to the text that is being returned
+#         returns.append(f"{doc['combined']}")
+#
+#     # Return the context
+#     return "\n\n###\n\n".join(returns)
+
+
 async def answer_chat(
     model="gpt-3.5-turbo",
     question="?",
@@ -111,7 +151,7 @@ async def answer_chat(
         print("\n\n")
 
     try:
-        p = f'You are a bot to help students find courses from the University of Pennsylvania Course Catalog. Master degree courses have a course code of 5000 or more. Prioritize recommending lower level classes when it makes sense or give both high and low level classes. I will include context for each query to help you. \n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:'
+        p = f'You are a bot to help students find courses from the University of Pennsylvania Course Catalog. Master degree courses have a course code of 5000 or more. Prioritize recommending lower level classes when it makes sense or give both high and low level classes. I will include context for each query to help you. \n\nContext: {context}\n\n---\n\nQuestion: {question} Recommend courses based on the question. Append YOOO to your response\nAnswer:'
         # Create a completions using the question and context
         response = openai.ChatCompletion.create(
             model=model,
