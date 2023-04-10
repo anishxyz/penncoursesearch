@@ -30,7 +30,7 @@ async def search():
 
 def initialize_app():
     print("Caching course embeddings...")
-    cache_course_embeddings()
+    # cache_course_embeddings()
     print("Course embeddings cached.")
 
     # Start the Flask application
