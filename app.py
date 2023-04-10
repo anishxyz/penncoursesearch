@@ -2,11 +2,12 @@ import asyncio
 import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS, cross_origin
-from queryengine import query_response, cache_embeddings
-
+from queryengine import query_response, cache_embeddings, initialize_cache_sync
 
 app = Flask(__name__, static_folder='frontend/build/', static_url_path='')
 CORS(app)
+
+initialize_cache_sync()
 
 
 @app.route('/', defaults={'path': ''})
@@ -29,14 +30,7 @@ async def search():
     return jsonify(results)
 
 
-async def initialize_cache():
-    print("Caching course embeddings...")
-    await cache_embeddings()
-    print("Course embeddings cached.")
-
-
 if __name__ == '__main__':
-    asyncio.run(initialize_cache())
     app.run()
 
 

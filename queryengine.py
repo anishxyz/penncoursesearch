@@ -25,6 +25,11 @@ context_len = 1200
 global_df = pd.DataFrame()
 
 
+def initialize_cache_sync():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(cache_embeddings())
+
+
 async def cache_embeddings():
     data = pd.read_parquet('data/courses_embed.parquet')
     global global_df
@@ -126,7 +131,7 @@ async def query_response(q):
 
 
 async def start():
-    cache_embeddings()
+    await cache_embeddings()
 
     while True:
         user_input = input("Enter a message: ")
