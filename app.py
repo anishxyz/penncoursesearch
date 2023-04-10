@@ -28,7 +28,7 @@ async def search():
     return jsonify(results)
 
 
-def initialize_redis():
+async def initialize_redis():
     print("Caching course embeddings...")
     await cache_course_embeddings()
     print("Course embeddings cached.")
