@@ -1,3 +1,5 @@
+import asyncio
+
 import certifi
 from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
 import openai
@@ -178,7 +180,10 @@ async def query_response(q):
         return "An error occurred"
 
 
-if __name__ == '__main__':
+def start():
+    liiii = list(collection.find({}))
+    print(liiii)
+
     while True:
         user_input = input("Enter a message: ")
 
@@ -188,3 +193,8 @@ if __name__ == '__main__':
 
         # print(create_context(user_input, df))
         print(answer_chat(question=user_input, debug=True))
+
+
+if __name__ == '__main__':
+    start()
+
