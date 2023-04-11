@@ -20,7 +20,8 @@ tokenizer = tiktoken.get_encoding("cl100k_base")
 api_key = os.environ["OPENAI_KEY"]
 openai.api_key = api_key
 
-context_len = 1200
+context_len = 2500
+context_dist = 0.21
 
 global_df = pd.DataFrame()
 
@@ -75,7 +76,11 @@ async def create_context_parquet(question):
     # Sort by distance and add the text to the context until the context is too long
     for i, row in global_df.sort_values('distances', ascending=True).iterrows():
 
+        if row['distances'] > context_dist and cur_len >= 800:
+            break
+
         # Add the length of the text to the current length
+        print(row['distances'])
         cur_len += row['tokens'] + 4
 
         # If the context is too long, break
@@ -84,6 +89,8 @@ async def create_context_parquet(question):
 
         # Else add it to the text that is being returned
         returns.append(f"{row['combined']}")
+
+    print("Context created.")
 
     # Return the context
     return "\n\n###\n\n".join(returns)

@@ -17,8 +17,8 @@ function App() {
         <Helmet>
           <title>Penn Course Search</title>
           <meta property="og:title" content="Penn Course Search" />
-          <meta property="og:description" content="An AI powered search engine for the UPenn course catalog" />
-          <meta property="og:image" content={`${process.env.PUBLIC_URL}/previewImage.jpg`} />
+          <meta name="description" property="og:description" content="An AI powered search engine for the UPenn course catalog" />
+          <meta name="image" property="og:image" content={`${process.env.PUBLIC_URL}/previewImage.jpg`} />
           <meta property="og:url" content={`${process.env.REACT_APP_API_URL}`} />
           <meta property="og:type" content="website" />
         </Helmet>

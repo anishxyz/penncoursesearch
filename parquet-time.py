@@ -7,6 +7,6 @@ tokenizer = tiktoken.get_encoding("cl100k_base")
 df = pd.read_parquet('data/courses_embed.parquet')
 
 # Print the DataFrame
-print(df)
+print(df['tokens'])
 
 
