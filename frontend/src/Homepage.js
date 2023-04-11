@@ -80,7 +80,7 @@ const Homepage = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         // Implement your search logic here
-        console.log("searching for: " + searchTerm)
+        console.log("Searching for: " + searchTerm)
         fetchData(searchTerm);
         setLastSearchTerm(searchTerm);
         setSearchTerm("");
