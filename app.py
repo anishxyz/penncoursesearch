@@ -39,7 +39,7 @@ async def search():
     else:
         search_term = request.args.get('q', '')
         context = request.args.get('context', '')
-    print(search_term)
+    # print(search_term)
 
     results = await query_response(search_term, context=context)
     # print(results)

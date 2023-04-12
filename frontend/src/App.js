@@ -18,8 +18,8 @@ function App() {
           <title>Penn Course Search</title>
           <meta property="og:title" content="Penn Course Search" />
           <meta name="description" property="og:description" content="An AI powered search engine for the UPenn course catalog" />
-          <meta name="image" property="og:image" content={`${process.env.PUBLIC_URL}/previewImage.jpg`} />
-          <meta property="og:url" content={`${process.env.REACT_APP_API_URL}`} />
+          <meta name="image" property="og:image" content="https://penncoursesearch.herokuapp.com/previewImage.jpg" />
+          <meta property="og:url" content="https://penncoursesearch.herokuapp.com" />
           <meta property="og:type" content="website" />
         </Helmet>
         <Homepage />
