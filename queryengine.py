@@ -20,10 +20,10 @@ tokenizer = tiktoken.get_encoding("cl100k_base")
 api_key = os.environ["OPENAI_KEY"]
 openai.api_key = api_key
 
-context_len = 2500
+context_len = 2000
 context_dist = 0.21
 
-global_df = pd.DataFrame()
+global global_df
 
 
 def initialize_cache_sync():
@@ -45,15 +45,20 @@ async def find_courses(input_question):
         courses_in_question.add(course.upper())
 
     matching_context = []
+    matching_courses = []
 
     # Loop through each course in courses_in_question
     for course in courses_in_question:
         # Use str.contains() to check if course is a substring of 'id'
-        matching = global_df['combined'][global_df['id'].str.contains(course)]
+        matching = global_df[global_df['id'].str.contains(course)]
         # Add the matching ids to the array
-        matching_context += matching.tolist()
+        # Add the matching ids to the array
+        matching_context += matching['combined'].tolist()
 
-    return matching_context
+        for _, row in matching.iterrows():
+            matching_courses.append({'title': row['id'], 'description': row['description']})
+
+    return matching_context, matching_courses
 
 
 async def create_context_parquet(question):
@@ -67,7 +72,7 @@ async def create_context_parquet(question):
     # Get the distances from the embeddings
     global_df['distances'] = distances_from_embeddings(q_embeddings, global_df['embedding'].values, distance_metric='cosine')
 
-    returns = await find_courses(question)
+    returns, relevant_courses = await find_courses(question)
     print("Course Matches")
     print(returns)
 
@@ -89,22 +94,25 @@ async def create_context_parquet(question):
 
         # Else add it to the text that is being returned
         returns.append(f"{row['combined']}")
+        relevant_courses.append({'title': row['id'], 'description': row['description']})
 
     print("Context created.")
 
+    context = "\n\n###\n\n".join(returns)
+
     # Return the context
-    return "\n\n###\n\n".join(returns)
+    return {"context": context, "courses": relevant_courses}
 
 
 async def answer_chat(
     model="gpt-3.5-turbo",
     question="?",
     debug=False,
+    context=""
 ):
     """
     Answer a question based on the most similar context from the dataframe texts
     """
-    context = await create_context_parquet(question)
     # If debug, print the raw model response
     if debug:
         print("Context:\n" + context)
@@ -127,9 +135,9 @@ async def answer_chat(
         return ""
 
 
-async def query_response(q):
+async def query_response(q, context=""):
     try:
-        ans = await answer_chat(question=q, debug=False)
+        ans = await answer_chat(question=q, debug=False, context=context)
         print(ans)
         return ans
 
@@ -149,7 +157,7 @@ async def start():
         if user_input.lower() == "exit":
             break
 
-        resp = await answer_chat(question=user_input, debug=True)
+        resp = await answer_chat(question=user_input, debug=False)
         print(resp)
 
 

@@ -7,66 +7,17 @@ import {
     Heading,
     Input,
     Text, useColorMode,
-    VStack, Skeleton, Stack, IconButton
+    VStack, Skeleton, Stack, IconButton, SimpleGrid, useTheme, Divider, useColorModeValue
 } from "@chakra-ui/react";
-import {InfoIcon} from "@chakra-ui/icons";
+import {Icon, InfoIcon} from "@chakra-ui/icons";
 import ColorModeSwitcher from "./ColorModeSwitcher";
 import InfoModal from "./InfoModal";
 import axios from 'axios';
+import { FaBolt } from "react-icons/fa";
+import ResultCard from "./ResultCard";
+import FastResultCard from "./FastResultCard";
+import LoadingCard from "./LoadingCard";
 
-const ResultCard = ({title, description}) => {
-    const [transform, setTransform] = useState('perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)');
-    const aggr = 90; // increase to make more subtle, decrease for more jumpy
-
-    const trans = (x, y, s) => `perspective(1000px) rotateX(${x}deg) rotateY(${y}deg) scale(${s})`;
-
-    const calc = (x, y) => [
-        -(y - window.innerHeight / 2) / aggr,
-        (x - window.innerWidth / 2) / aggr,
-        1.02, // handles scaling
-    ];
-
-    const handleMouseMove = (e) => {
-        const [x, y, s] = calc(e.clientX, e.clientY);
-        setTransform(trans(x, y, s));
-    };
-
-    const handleMouseLeave = () => {
-        setTransform('perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)');
-    };
-
-    return (
-        <div
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            style={{transform}}
-        >
-            <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p="4" boxShadow="md">
-                <VStack align="start" spacing={2}>
-                    <Text fontWeight="bold" fontSize="xl">
-                        {title}
-                    </Text>
-                    <Text style={{whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                        {description}
-                    </Text>
-                </VStack>
-            </Box>
-        </div>
-    );
-};
-
-
-const LoadingCard = () => {
-    return (
-        <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p="4" boxShadow="md">
-            <Stack>
-                <Skeleton height='20px'/>
-                <Skeleton height='20px'/>
-                <Skeleton height='20px'/>
-            </Stack>
-        </Box>
-    );
-};
 
 const Homepage = () => {
     const [searchTerm, setSearchTerm] = useState("");
@@ -76,11 +27,13 @@ const Homepage = () => {
     const [lastSearchTerm, setLastSearchTerm] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+    const [fastSearchResults, setFastSearchResults] = useState([]);
 
     const handleSearch = (e) => {
         e.preventDefault();
         // Implement your search logic here
         console.log("Searching for: " + searchTerm)
+        setFastSearchResults([]);
         fetchData(searchTerm);
         setLastSearchTerm(searchTerm);
         setSearchTerm("");
@@ -90,13 +43,26 @@ const Homepage = () => {
         setIsLoading(true);
         console.log("Fetching courses....")
         try {
-            console.log(`${process.env.REACT_APP_API_URL}/search`)
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/search`, {
+            console.log(`${process.env.REACT_APP_API_URL}/searchfast`);
+            const fastResponse = await axios.get(`${process.env.REACT_APP_API_URL}/searchfast`, {
                 params: {
                     q: searchTerm,
                 },
             });
+
+            const fastCourses = fastResponse.data.courses;
+            const context = fastResponse.data.context;
+
+            setFastSearchResults(fastCourses);
+
+            console.log(`${process.env.REACT_APP_API_URL}/search`)
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/search`, {
+                q: searchTerm,
+                context: context
+            });
+
             console.log(response.data);
+
             setSearchResults(response.data);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -153,6 +119,7 @@ const Homepage = () => {
             <Box></Box>
             <VStack>
                 <Heading
+                    pt={{ base: "4rem", md: "6rem" }} // Adjust the padding-top value for different screen sizes
                     mb="6"
                     bgGradient="linear(to-r, orange.500, yellow.500)"
                     bgClip="text"
@@ -178,15 +145,28 @@ const Homepage = () => {
                     </Center>
                 </Flex>
                 <Box pt="10" w="100%">
-                    {isLoading ? (
-                        <LoadingCard/>
-                    ) : searchResults ? (
-                        <ResultCard title={lastSearchTerm} description={searchResults}/>
-                    ) : null}
+                    <VStack spacing={4} alignItems="center">
+                        {isLoading ? (
+                            <LoadingCard/>
+                        ) : searchResults ? (
+                            <ResultCard title={lastSearchTerm} description={searchResults}/>
+                        ) : null}
+                        {fastSearchResults.length > 0 && (
+                            <Box
+                                w="100%" // Add this to set the width
+                                style={{
+                                    overflow: "scroll",
+                                    scrollSnapType: "y mandatory", // Add this for scroll snapping
+                                }}
+                            >
+                                <FastResultCard courses={fastSearchResults}/>
+                            </Box>
+                        )}
+                    </VStack>
                 </Box>
             </VStack>
             <Box>
-                <Text textAlign="center" fontSize="sm" pb={4}>
+                <Text textAlign="center" fontSize="sm" pb={4} pt={10}>
                     Built by Anish Agrawal
                 </Text>
             </Box>
