@@ -80,7 +80,7 @@ async def create_context_parquet(question):
     # Sort by distance and add the text to the context until the context is too long
     for i, row in global_df.sort_values('distances', ascending=True).iterrows():
 
-        if row['distances'] > context_dist and cur_len >= 1200:
+        if row['distances'] > context_dist and cur_len >= 1500:
             break
 
         # Add the length of the text to the current length
@@ -97,7 +97,7 @@ async def create_context_parquet(question):
 
     context = "\n\n###\n\n".join(returns)
 
-    print("Context created.")
+    # print("Context created.")
 
     # Return the context
     return {"context": context, "courses": relevant_courses}
