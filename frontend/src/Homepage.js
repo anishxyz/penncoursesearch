@@ -43,7 +43,7 @@ const Homepage = () => {
         setIsLoading(true);
         console.log("Fetching courses....")
         try {
-            console.log(`${process.env.REACT_APP_API_URL}/searchfast`);
+            // console.log(`${process.env.REACT_APP_API_URL}/searchfast`);
             const fastResponse = await axios.get(`${process.env.REACT_APP_API_URL}/searchfast`, {
                 params: {
                     q: searchTerm,
@@ -55,13 +55,13 @@ const Homepage = () => {
 
             setFastSearchResults(fastCourses);
 
-            console.log(`${process.env.REACT_APP_API_URL}/search`)
+            // console.log(`${process.env.REACT_APP_API_URL}/search`)
             const response = await axios.post(`${process.env.REACT_APP_API_URL}/search`, {
                 q: searchTerm,
                 context: context
             });
 
-            console.log(response.data);
+            // console.log(response.data);
 
             setSearchResults(response.data);
         } catch (error) {

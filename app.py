@@ -25,7 +25,7 @@ async def searchfast():
     print(search_term)
 
     results = await create_context_parquet(search_term)
-    print(results)
+    # print(results)
 
     return jsonify(results)
 
@@ -42,7 +42,7 @@ async def search():
     print(search_term)
 
     results = await query_response(search_term, context=context)
-    print(results)
+    # print(results)
 
     return jsonify(results)
 

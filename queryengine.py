@@ -1,13 +1,11 @@
 import asyncio
 import re
-import certifi
 import pandas as pd
 from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
 import openai
 import tiktoken
 from dotenv import load_dotenv
 import os
-import redis
 import json
 
 # set up from environment
@@ -73,8 +71,9 @@ async def create_context_parquet(question):
     global_df['distances'] = distances_from_embeddings(q_embeddings, global_df['embedding'].values, distance_metric='cosine')
 
     returns, relevant_courses = await find_courses(question)
-    print("Course Matches")
-    print(returns)
+
+    # print("Course Matches")
+    # print(returns)
 
     cur_len = 0
 
@@ -85,7 +84,7 @@ async def create_context_parquet(question):
             break
 
         # Add the length of the text to the current length
-        print(row['distances'])
+        # print(row['distances'])
         cur_len += row['tokens'] + 4
 
         # If the context is too long, break
@@ -96,9 +95,9 @@ async def create_context_parquet(question):
         returns.append(f"{row['combined']}")
         relevant_courses.append({'title': row['id'], 'description': row['description']})
 
-    print("Context created.")
-
     context = "\n\n###\n\n".join(returns)
+
+    print("Context created.")
 
     # Return the context
     return {"context": context, "courses": relevant_courses}
@@ -138,7 +137,7 @@ async def answer_chat(
 async def query_response(q, context=""):
     try:
         ans = await answer_chat(question=q, debug=False, context=context)
-        print(ans)
+        # print(ans)
         return ans
 
     except Exception as e:
