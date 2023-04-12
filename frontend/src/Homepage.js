@@ -7,7 +7,7 @@ import {
     Heading,
     Input,
     Text, useColorMode,
-    VStack, Skeleton, Stack, IconButton, SimpleGrid, useTheme, Divider, useColorModeValue
+    VStack,  IconButton,
 } from "@chakra-ui/react";
 import {Icon, InfoIcon} from "@chakra-ui/icons";
 import ColorModeSwitcher from "./ColorModeSwitcher";
