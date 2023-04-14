@@ -14,6 +14,8 @@ import {
   Link,
   Kbd
 } from "@chakra-ui/react";
+import { ExternalLinkIcon } from '@chakra-ui/icons'
+
 
 const InfoModal = ({ isOpen, onClose }) => {
   return (
@@ -45,7 +47,7 @@ const InfoModal = ({ isOpen, onClose }) => {
             </Text>
             <Link href="https://forms.gle/5tpjCZ1xZjbCuAwL6" isExternal color="orange.500">
               <Text>
-                Feedback form
+                Feedback form <ExternalLinkIcon mx='2px' />
               </Text>
             </Link>
           </VStack>

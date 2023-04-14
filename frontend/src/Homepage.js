@@ -17,6 +17,7 @@ import { FaBolt } from "react-icons/fa";
 import ResultCard from "./ResultCard";
 import FastResultCard from "./FastResultCard";
 import LoadingCard from "./LoadingCard";
+import infoModal from "./InfoModal";
 
 
 const Homepage = () => {
@@ -31,6 +32,11 @@ const Homepage = () => {
 
     const handleSearch = (e) => {
         e.preventDefault();
+
+        if (searchTerm.length === 0) {
+            return;
+        }
+
         // Implement your search logic here
         console.log("Searching for: " + searchTerm)
         setFastSearchResults([]);
@@ -84,6 +90,24 @@ const Homepage = () => {
             window.removeEventListener("keydown", handleKeyDown);
         };
     }, [toggleColorMode]);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "i" && e.target.tagName !== "INPUT") {
+                if (isInfoModalOpen) {
+                    closeInfoModal();
+                } else {
+                    openInfoModal();
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [isInfoModalOpen]);
 
     const openInfoModal = () => {
         setIsInfoModalOpen(true);

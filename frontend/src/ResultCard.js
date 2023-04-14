@@ -14,14 +14,12 @@ import { FaMagic } from "react-icons/fa";
 const ResultCard = ({ title, description }) => {
   const borderColor = useColorModeValue("gray.300", "whiteAlpha.400");
   const bgColor = useColorModeValue("gray.100", "gray.700");
-  const [isSmallerThanMD] = useMediaQuery('(max-width: 47.9em)');
 
   return (
     <Box
       borderWidth="1px"
       borderRadius="lg"
       overflowY="scroll"
-      maxH={isSmallerThanMD ? 'none' : '400px'}
       p="4"
       boxShadow="md"
       bgColor={bgColor}
