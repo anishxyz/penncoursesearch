@@ -13,11 +13,9 @@ import {Icon, InfoIcon} from "@chakra-ui/icons";
 import ColorModeSwitcher from "./ColorModeSwitcher";
 import InfoModal from "./InfoModal";
 import axios from 'axios';
-import { FaBolt } from "react-icons/fa";
 import ResultCard from "./ResultCard";
 import FastResultCard from "./FastResultCard";
 import LoadingCard from "./LoadingCard";
-import infoModal from "./InfoModal";
 
 
 const Homepage = () => {

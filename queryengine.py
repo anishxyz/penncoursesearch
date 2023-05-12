@@ -18,7 +18,7 @@ tokenizer = tiktoken.get_encoding("cl100k_base")
 api_key = os.environ["OPENAI_KEY"]
 openai.api_key = api_key
 
-context_len = 2000
+context_len = 1500
 context_dist = 0.21
 
 global global_df
@@ -80,7 +80,7 @@ async def create_context_parquet(question):
     # Sort by distance and add the text to the context until the context is too long
     for i, row in global_df.sort_values('distances', ascending=True).iterrows():
 
-        if row['distances'] > context_dist and cur_len >= 1500:
+        if row['distances'] > context_dist and cur_len >= context_len:
             break
 
         # Add the length of the text to the current length
@@ -93,12 +93,13 @@ async def create_context_parquet(question):
 
         # Else add it to the text that is being returned
         returns.append(f"{row['combined']}")
-        relevant_courses.append({'title': row['id'], 'description': row['description']})
+        relevant_courses.append({'title': row['id'], 'description': row['description'],
+                                 'professor': row['processor_stats'], 'link': row['link']})
 
     context = "\n\n###\n\n".join(returns)
 
     # print("Context created.")
-
+    print(cur_len)
     # Return the context
     return {"context": context, "courses": relevant_courses}
 
@@ -120,6 +121,7 @@ async def answer_chat(
     try:
         p = f'You are a bot to help students find courses from the University of Pennsylvania Course Catalog. Master degree courses have a course code of 5000 or more. Prioritize recommending lower level classes when it makes sense or give both high and low level classes. I will include context for each query to help you. Use lists when it makes sense \n\nContext: {context}\n\n---\n\nQuestion: {question} \nAnswer:'
         # Create a completions using the question and context
+        print(p)
         response = openai.ChatCompletion.create(
             model=model,
             messages=[{"role": "user", "content": p}]
@@ -156,7 +158,8 @@ async def start():
         if user_input.lower() == "exit":
             break
 
-        resp = await answer_chat(question=user_input, debug=False)
+        context = await create_context_parquet(user_input)
+        resp = await answer_chat(question=user_input, debug=False, context=context["context"])
         print(resp)
 
 
