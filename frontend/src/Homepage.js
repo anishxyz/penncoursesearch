@@ -7,15 +7,16 @@ import {
     Heading,
     Input,
     Text, useColorMode,
-    VStack,  IconButton,
+    VStack, IconButton, Button, useToast
 } from "@chakra-ui/react";
-import {Icon, InfoIcon} from "@chakra-ui/icons";
+import {InfoIcon} from "@chakra-ui/icons";
 import ColorModeSwitcher from "./ColorModeSwitcher";
 import InfoModal from "./InfoModal";
 import axios from 'axios';
 import ResultCard from "./ResultCard";
 import FastResultCard from "./FastResultCard";
 import LoadingCard from "./LoadingCard";
+import {FaMagic} from "react-icons/fa";
 
 
 const Homepage = () => {
@@ -27,6 +28,9 @@ const Homepage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
     const [fastSearchResults, setFastSearchResults] = useState([]);
+    const [currContext, setCurrContext] = useState("");
+    const [smartTrigger, setSmartTrigger] = useState(false);
+    const toast = useToast();
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -38,6 +42,8 @@ const Homepage = () => {
         // Implement your search logic here
         console.log("Searching for: " + searchTerm)
         setFastSearchResults([]);
+        setSearchResults("");
+        setCurrContext("");
         fetchData(searchTerm);
         setLastSearchTerm(searchTerm);
         setSearchTerm("");
@@ -58,16 +64,51 @@ const Homepage = () => {
             const context = fastResponse.data.context;
 
             setFastSearchResults(fastCourses);
+            setCurrContext(context);
 
+            // console.log(`${process.env.REACT_APP_API_URL}/search`)
+            // const response = await axios.post(`${process.env.REACT_APP_API_URL}/search`, {
+            //     q: searchTerm,
+            //     context: context
+            // });
+
+            // console.log(response.data);
+
+            // setSearchResults(response.data);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchSmartData = async (searchTerm) => {
+        if (!canSearch()) {
+            toast({
+                title: "Limit Reached",
+                description: "You have reached the maximum number of smart searches for today. Please try again tomorrow.",
+                status: "warning",
+                duration: 5000,
+                isClosable: true,
+                colorScheme: "orange",
+            });
+            return;
+        }
+
+        setIsLoading(true);
+        setSmartTrigger(true);
+        console.log("Fetching full courses....")
+        try {
             // console.log(`${process.env.REACT_APP_API_URL}/search`)
             const response = await axios.post(`${process.env.REACT_APP_API_URL}/search`, {
                 q: searchTerm,
-                context: context
+                context: currContext
             });
 
             // console.log(response.data);
 
             setSearchResults(response.data);
+            setSmartTrigger(false);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -115,6 +156,27 @@ const Homepage = () => {
         setIsInfoModalOpen(false);
     };
 
+
+    const canSearch = () => {
+        const searches = JSON.parse(localStorage.getItem('searches')) || {count: 0, date: new Date().toDateString()};
+
+        if (searches.date !== new Date().toDateString()) {
+            // Reset the count and date if the current date is different from the saved date
+            searches.count = 0;
+            searches.date = new Date().toDateString();
+        }
+
+        if (searches.count >= 5) {
+            return false;
+        }
+
+        // Increment the count and save it to the local storage
+        searches.count++;
+        localStorage.setItem('searches', JSON.stringify(searches));
+
+        return true;
+    };
+
     return (
         <Container
             minHeight="100vh"
@@ -141,7 +203,7 @@ const Homepage = () => {
             <Box></Box>
             <VStack>
                 <Heading
-                    pt={{ base: "4rem", md: "6rem" }} // Adjust the padding-top value for different screen sizes
+                    pt={{base: "4rem", md: "6rem"}} // Adjust the padding-top value for different screen sizes
                     mb="6"
                     bgGradient="linear(to-r, orange.500, yellow.500)"
                     bgClip="text"
@@ -181,6 +243,23 @@ const Homepage = () => {
                                     scrollSnapType: "y mandatory", // Add this for scroll snapping
                                 }}
                             >
+                                {!searchResults && !smartTrigger && (
+                                    <>
+                                    <Center>
+                                        <Button
+                                            colorScheme="orange"
+                                            leftIcon={<FaMagic/>}
+                                            onClick={async () => {
+                                                fetchSmartData(lastSearchTerm);
+                                                window.scrollTo({top: 0, behavior: 'smooth'}); // scroll to top
+                                            }}
+                                        >
+                                            Load Smart Results
+                                        </Button>
+                                    </Center>
+                                    <Box height="1rem" />
+                                    </>
+                                )}
                                 <FastResultCard courses={fastSearchResults}/>
                             </Box>
                         )}

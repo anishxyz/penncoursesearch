@@ -1,14 +1,28 @@
-import {Box, Divider, Heading, Text, useColorModeValue, VStack, Table, Thead, Tbody, Tr, Th, Td, Link} from "@chakra-ui/react";
+import {
+  Box,
+  Divider,
+  Heading,
+  Text,
+  useColorModeValue,
+  VStack,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Link, useBreakpointValue,
+} from "@chakra-ui/react";
 import {Icon} from "@chakra-ui/icons";
 import {FaBolt} from "react-icons/fa";
 import React from "react";
-import { useMediaQuery } from '@chakra-ui/react';
 
 const FastResultCard = ({ courses }) => {
   const borderColor = useColorModeValue("gray.300", "whiteAlpha.400");
   const bgColor = useColorModeValue("gray.100", "gray.700");
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
-  const renderProfessorsTable = (professors) => {
+   const renderProfessorsTable = (professors) => {
     const parsedProfessors = JSON.parse(professors);
 
     if (parsedProfessors.join() === [].join()) {
@@ -17,34 +31,49 @@ const FastResultCard = ({ courses }) => {
     if (parsedProfessors.join() === ["TBD"].join()) {
       return (<><Box height="1rem" /><Text>Course Offered Fall 2023 -- Professor TBD</Text></>);
     }
-    return (
-    <>
-      <Box height="1rem" /> {/* Add spacer */}
+
+    return isMobile ? (
+      <>
+        <Box height="1rem" />
+        {parsedProfessors.map((professor, index) => (
+          <VStack key={index} align="start" spacing={1}>
+            <Text fontWeight="bold">{professor.name || '-'}</Text>
+            <Text>Instructor Quality: {professor.instructor_quality || '-'}</Text>
+            <Text>Course Quality: {professor.course_quality || '-'}</Text>
+            <Text>Difficulty: {professor.difficulty || '-'}</Text>
+            <Text>Work Required: {professor.work_required || '-'}</Text>
+          </VStack>
+        ))}
+      </>
+    ) : (
+        <>
+        <Box height="1rem" />
       <Table variant="simple" size="sm">
         <Thead>
           <Tr>
-            <Th>Name</Th>
+            <Th>Instructor</Th>
+            <Th>Instructor Quality</Th>
             <Th>Course Quality</Th>
             <Th>Difficulty</Th>
-            <Th>Instructor Quality</Th>
             <Th>Work Required</Th>
           </Tr>
         </Thead>
         <Tbody>
           {parsedProfessors.map((professor, index) => (
             <Tr key={index}>
-              <Td>{professor.name}</Td>
-              <Td>{professor.course_quality}</Td>
-              <Td>{professor.difficulty}</Td>
-              <Td>{professor.instructor_quality}</Td>
-              <Td>{professor.work_required}</Td>
+              <Td>{professor.name || '-'}</Td>
+              <Td>{professor.instructor_quality || '-'}</Td>
+              <Td>{professor.course_quality || '-'}</Td>
+              <Td>{professor.difficulty || '-'}</Td>
+              <Td>{professor.work_required || '-'}</Td>
             </Tr>
           ))}
         </Tbody>
       </Table>
-    </>
-  );
+          </>
+    );
   }
+
 
   return (
     <Box

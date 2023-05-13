@@ -32,6 +32,9 @@ const InfoModal = ({ isOpen, onClose }) => {
             <Text>
               With Penn Course Search, students can search for courses based on interests, topics, career paths and more!
             </Text>
+            <Text>
+              V2 Update: course reviews + smarter results!
+            </Text>
             <Text fontWeight="bold">Examples:</Text>
             <VStack align="start" spacing={1}>
               <Text> - "I want to learn about typography"</Text>
@@ -39,9 +42,14 @@ const InfoModal = ({ isOpen, onClose }) => {
               <Text> - "Compare and contrast CIS 2400 and ESE 3500"</Text>
               <Text> - "I want to become a VC"</Text>
             </VStack>
-            <Text>
-              Press <Kbd>m</Kbd> to toggle light/dark mode.
-            </Text>
+            <VStack align="start" spacing={1}>
+              <Text>
+                Press <Kbd>m</Kbd> to toggle light/dark mode.
+              </Text>
+              <Text>
+                Press <Kbd>i</Kbd> to toggle info panel.
+              </Text>
+            </VStack>
             <Text color="red.500">
               Please note: It is still in beta so some results might not be 100% accurate.
             </Text>

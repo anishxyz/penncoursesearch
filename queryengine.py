@@ -16,7 +16,7 @@ from pymongo import MongoClient
 load_dotenv()
 tokenizer = tiktoken.get_encoding("cl100k_base")
 
-# open ai auth
+# open-ai auth
 api_key = os.environ["OPENAI_KEY"]
 openai.api_key = api_key
 
@@ -25,90 +25,8 @@ api_key = os.environ["PINE_CONE_API_KEY"]
 pinecone.init(api_key=api_key, environment="northamerica-northeast1-gcp")
 index = pinecone.Index("penn-courses")
 
-context_len = 1500
-context_dist = 0.21
-
-global global_df
-
-
-def initialize_cache_sync():
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(cache_embeddings())
-
-
-async def cache_embeddings():
-    data = pd.read_parquet('data/courses_embed.parquet')
-    # data['professor_stats'] = data['professor_stats'].apply(ast.literal_eval)
-    global global_df
-    global_df = data
-
-
-async def find_courses(input_question):
-    course_pattern = r'(?i)([A-Za-z]{2,6})\s?([0-9]{3,4})'
-    courses_in_question = set()
-    for match in re.finditer(course_pattern, input_question):
-        course = match.group(1) + ' ' + match.group(2)
-        courses_in_question.add(course.upper())
-
-    matching_context = []
-    matching_courses = []
-
-    # Loop through each course in courses_in_question
-    for course in courses_in_question:
-        # Use str.contains() to check if course is a substring of 'id'
-        matching = global_df[global_df['id'].str.contains(course)]
-        # Add the matching ids to the array
-        # Add the matching ids to the array
-        matching_context += matching['combined'].tolist()
-
-        for _, row in matching.iterrows():
-            matching_courses.append({'title': row['id'], 'description': row['description']})
-
-    return matching_context, matching_courses
-
-
-async def create_context_parquet(question):
-    """
-    Create a context for a question by finding the most similar context from the dataframe
-    """
-
-    # Get the embeddings for the question
-    q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
-
-    # Get the distances from the embeddings
-    global_df['distances'] = distances_from_embeddings(q_embeddings, global_df['embedding'].values, distance_metric='cosine')
-
-    returns, relevant_courses = await find_courses(question)
-
-    # print("Course Matches")
-    # print(returns)
-
-    cur_len = 0
-
-    # Sort by distance and add the text to the context until the context is too long
-    for i, row in global_df.sort_values('distances', ascending=True).iterrows():
-
-        if row['distances'] > context_dist and cur_len >= context_len:
-            break
-
-        # Add the length of the text to the current length
-        # print(row['distances'])
-        cur_len += row['tokens'] + 4
-
-        # If the context is too long, break
-        if cur_len > context_len:
-            break
-
-        # Else add it to the text that is being returned
-        returns.append(f"{row['combined']}")
-        relevant_courses.append({'title': row['id'], 'description': row['description']})
-
-    context = "\n\n###\n\n".join(returns)
-
-    # print("Context created.")
-    print(cur_len)
-    # Return the context
-    return {"context": context, "courses": relevant_courses}
+token_limit = 2000  # Set your desired token limit
+score_lower_bound = 0.75  # Set your desired score lower bound
 
 
 async def create_context_pinecone(question):
@@ -195,7 +113,19 @@ async def create_context_pinecone(question):
             }
             relevant_courses[match.get('id', '')] = course
 
-    return {"context": [], "courses": list(relevant_courses.values())}
+    context = ""
+    token_count = 0
+
+    # Construct context from matches
+    for match in matches.get('matches', []):
+        if match.get('score', 0) >= score_lower_bound and token_count <= token_limit:
+            context += match.get('metadata', {}).get('combined', '') + "\n\n"
+            token_count += match.get('metadata', {}).get('tokens', 0)
+            professor_stats = match.get('metadata', {}).get('professor_stats', None)
+            if professor_stats:
+                context += "Professor stats:\n" + json.dumps(professor_stats) + "\n\n"
+
+    return {"context": context, "courses": list(relevant_courses.values())}
 
 
 async def answer_chat(
@@ -237,13 +167,11 @@ async def query_response(q, context=""):
         return ans
 
     except Exception as e:
-        print(global_df)
         print(e)
         return "An error occurred"
 
 
 async def start():
-    await cache_embeddings()
 
     while True:
         user_input = input("Enter a message: ")
@@ -252,11 +180,9 @@ async def start():
         if user_input.lower() == "exit":
             break
 
-        res = await create_context_pinecone(user_input)
-        print(res['courses'])
-        # context = await create_context_parquet(user_input)
-        # resp = await answer_chat(question=user_input, debug=False, context=context["context"])
-        # print(resp)
+        context = await create_context_pinecone(user_input)
+        resp = await answer_chat(question=user_input, debug=False, context=context["context"])
+        print(resp)
 
 
 if __name__ == '__main__':

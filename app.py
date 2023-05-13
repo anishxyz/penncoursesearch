@@ -2,12 +2,10 @@ import asyncio
 import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS, cross_origin
-from queryengine import query_response, initialize_cache_sync, create_context_parquet, create_context_pinecone
+from queryengine import query_response, create_context_pinecone
 
 app = Flask(__name__, static_folder='frontend/build/', static_url_path='')
 CORS(app)
-
-initialize_cache_sync()
 
 
 @app.route('/', defaults={'path': ''})
