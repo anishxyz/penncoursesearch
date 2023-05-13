@@ -20,17 +20,17 @@ openai.api_key = api_key
 BATCH_SIZE = 1000
 
 # Set the original filename
-filename = "FILLIN.csv"
+filename = "data/courses_embed_plus.csv"
 
 # tokens used
 tot_tokens = 0
 
-# Check if the file already exists
-if os.path.exists(filename):
-    # If it does, make a copy of the file
-    shutil.copyfile(filename, "data/courses_embed.csv")
-    # Set the filename to the copy
-    filename = "data/courses_embed.csv"
+# # Check if the file already exists
+# if os.path.exists(filename):
+#     # If it does, make a copy of the file
+#     shutil.copyfile(filename, "data/courses_embed.csv")
+#     # Set the filename to the copy
+#     filename = "data/courses_embed_plus.csv"
 
 # Load the CSV file
 with open(filename, "r", newline="", encoding="utf-8") as csvfile:
@@ -43,12 +43,12 @@ with open(filename, "r", newline="", encoding="utf-8") as csvfile:
     batch = []
     for row in reader:
 
-        n_tokens = len(tokenizer.encode(row['ALL']))
+        n_tokens = len(tokenizer.encode(row['combined']))
         tot_tokens += n_tokens
-        print(f"{row['Department Code']} {row['Course Code']}, {n_tokens} Tokens Used")
+        print(f"{row['id']}, {n_tokens} Tokens Used")
 
         # Add the description to the current batch
-        batch.append(row["ALL"])
+        batch.append(row["combined"])
 
         # If the batch is full, generate embeddings for it and add them to the list
         if len(batch) == BATCH_SIZE:
@@ -77,8 +77,8 @@ with open(filename, "r", newline="", encoding="utf-8") as csvfile:
         final_embed.append(temp)
 
     df = pd.read_csv(filename)
-    df['Embedding'] = ''
-    df['Embedding'] = final_embed
+    df['embedding'] = ''
+    df['embedding'] = final_embed
     df.to_csv(filename, index=False)
 
     cost = tot_tokens / 1000 * 0.0004

@@ -1,23 +1,20 @@
+import ast
+import json
+
+import numpy as np
 import pandas as pd
 import tiktoken
 
 tokenizer = tiktoken.get_encoding("cl100k_base")
 
-# Load the Parquet file into a DataFrame
-# df = pd.read_parquet('data/courses_embed.parquet')
 df = pd.read_csv('data/courses_embed_plus.csv')
 
+# # Convert JSON strings to list of dictionaries for professor_stats
+# df['professor_stats'] = df['professor_stats'].apply(ast.literal_eval)
 
-# def create_department_link(course_id):
-#     department_code = course_id.split(' ')[0].lower()
-#     return f"https://catalog.upenn.edu/courses/{department_code}/"
-#
-#
-# # Add a new column 'links' to the DataFrame
-# df['link'] = df['id'].apply(create_department_link)
-#
-# with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-#     print(df.head())
+# Convert DataFrame to parquet
+print(df)
 
+df['embedding'] = df['embedding'].apply(lambda x: np.array(eval(x)))
 
-df.to_parquet('data/courses_embed.parquet')
+df.to_parquet('data/courses_embed_plus.parquet')

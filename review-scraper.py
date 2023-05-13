@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 
 # Read the parquet file
-df = pd.read_parquet('data/courses_embed_plus.parquet')
+df = pd.read_parquet('data/courses_embed.parquet')
 
 
 # Define a function to get the professor information
@@ -40,4 +40,4 @@ def get_professors_info(course_id):
 df['professor_stats'] = df['id'].apply(get_professors_info)
 
 # Save the updated DataFrame to a new parquet file
-df.to_parquet('data/courses_embed_plus.parquet')
+df.to_parquet('data/courses_embed.parquet')

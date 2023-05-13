@@ -2,7 +2,7 @@ import asyncio
 import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS, cross_origin
-from queryengine import query_response, initialize_cache_sync, create_context_parquet
+from queryengine import query_response, initialize_cache_sync, create_context_parquet, create_context_pinecone
 
 app = Flask(__name__, static_folder='frontend/build/', static_url_path='')
 CORS(app)
@@ -24,7 +24,7 @@ async def searchfast():
     search_term = request.args.get('q', '')
     print(search_term)
 
-    results = await create_context_parquet(search_term)
+    results = await create_context_pinecone(search_term)
     # print(results)
 
     return jsonify(results)

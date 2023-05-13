@@ -6,7 +6,7 @@ import numpy as np
 from dotenv import load_dotenv
 
 # Load data from CSV into a DataFrame
-df = pd.read_csv('data/courses_embed.csv')
+df = pd.read_csv('data/courses_embed.parquet')
 
 load_dotenv()
 mongodb_uri = os.getenv('MONGODB_URI')
