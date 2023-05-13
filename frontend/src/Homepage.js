@@ -97,7 +97,7 @@ const Homepage = () => {
 
         setIsLoading(true);
         setSmartTrigger(true);
-        console.log("Fetching full courses....")
+        console.log("Fetching smart result....")
         try {
             // console.log(`${process.env.REACT_APP_API_URL}/search`)
             const response = await axios.post(`${process.env.REACT_APP_API_URL}/search`, {
