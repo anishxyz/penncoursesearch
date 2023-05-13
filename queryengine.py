@@ -1,9 +1,6 @@
-import ast
 import asyncio
 import re
-import pandas as pd
 import pinecone
-from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
 import openai
 import tiktoken
 from dotenv import load_dotenv
@@ -145,7 +142,6 @@ async def answer_chat(
     try:
         p = f'You are a bot to help students find courses from the University of Pennsylvania Course Catalog. Master degree courses have a course code of 5000 or more. Prioritize recommending lower level classes when it makes sense or give both high and low level classes. I will include context for each query to help you. Use lists when it makes sense \n\nContext: {context}\n\n---\n\nQuestion: {question} \nAnswer:'
         # Create a completions using the question and context
-        print(p)
         response = openai.ChatCompletion.create(
             model=model,
             messages=[{"role": "user", "content": p}]

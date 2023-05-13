@@ -38,7 +38,7 @@ async def search():
         search_term = request.args.get('q', '')
         context = request.args.get('context', '')
     # print(search_term)
-
+    print('Smart Search!')
     results = await query_response(search_term, context=context)
     # print(results)
 
