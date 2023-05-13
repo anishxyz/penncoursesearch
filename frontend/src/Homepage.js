@@ -253,8 +253,7 @@ const Homepage = () => {
                                                 fetchSmartData(lastSearchTerm);
                                                 window.scrollTo({top: 0, behavior: 'smooth'}); // scroll to top
                                             }}
-                                        >
-                                            Load Smart Results
+                                        >Magic Response
                                         </Button>
                                     </Center>
                                     <Box height="1rem" />
