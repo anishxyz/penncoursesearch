@@ -1,20 +1,20 @@
-Penn Course Search
+## Penn Course Search
 
 A semantic search engine for the penn course database!
 
-/frontend
+### /frontend
   React project with all frontend related code and docker config
 
-backend:
-app.py: backend routes
-courses-scraper.py: scraps penn catalog for courses
-embed.py: embeds course info into vector via ada
-review-scraper.py: get course review information for a course
-query_engine: logic to query for results
-
+### backend:  
+app.py: backend routes  
+courses-scraper.py: scraps penn catalog for courses  
+embed.py: embeds course info into vector via ada  
+review-scraper.py: get course review information for a course  
+query_engine: logic to query for results  
+ 
 db: pinecone (mongo not used)
 
-TODO:
+## TODO:
 - [ ] Migrate from pinecone to alt vectordb (atlas?)
 - [ ] Remove unused files
 - [ ] Refactor query logic to be readble and modular
