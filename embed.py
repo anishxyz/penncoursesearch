@@ -11,8 +11,7 @@ load_dotenv()
 tokenizer = tiktoken.get_encoding("cl100k_base")
 
 # Access the API key environment variable
-# api_key = os.environ["something"]
-api_key = "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"
+api_key = os.environ["OPENAI_KEY"]
 openai.api_key = api_key
 
 # print(openai.Model.list())

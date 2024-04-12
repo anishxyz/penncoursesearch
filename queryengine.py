@@ -14,16 +14,12 @@ load_dotenv()
 tokenizer = tiktoken.get_encoding("cl100k_base")
 
 # open-ai auth
-# api_key = os.environ["OPENAI_KEY"]
-api_key = "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"
+api_key = os.environ["OPENAI_KEY"]
 openai.api_key = api_key
 
 # pinecone auth
-# api_key = os.environ["PINE_CONE_API_KEY"]
-api_key = "AZok5GinvJHHcZcgwlJZOQ8XVvX1vJXDgfAsbMQ35w2AnchDYxo0IFFNTd39yBRT"
-username = "PCS"
-password = "1234"
-client = MongoClient(f"mongodb+srv://{username}:{password}@pennsoursesearch.epdhqbb.mongodb.net/")
+api_key = os.environ["MONGODB_URI"]
+client = MongoClient(api_key)
 index = client["course-embeddings"]["catalog"]
 
 token_limit = 2000  # Set your desired token limit

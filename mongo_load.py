@@ -10,12 +10,7 @@ from urllib import parse
 # df = pd.read_parquet('data/courses_embed.parquet')
 df = pd.read_csv("data/courses_embed.csv")
 load_dotenv()
-# mongodb_uri = os.getenv('MONGODB_URI')
-username = "PCS"
-password = "1234"
-mongodb_uri = f"mongodb+srv://{username}:{password}@pennsoursesearch.epdhqbb.mongodb.net/?retryWrites=true&w=majority&appName=PennSourseSearch"
-print(mongodb_uri)
-print("mongodb+srv://<username>:<password>@pennsoursesearch.epdhqbb.mongodb.net/?retryWrites=true&w=majority&appName=PennSourseSearch")
+mongodb_uri = os.getenv('MONGODB_URI')
 # Connect to MongoDB and create a collection
 client = MongoClient(mongodb_uri, tlsCAFile=certifi.where())
 db = client['course-embeddings']
