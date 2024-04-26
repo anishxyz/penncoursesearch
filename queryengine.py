@@ -18,9 +18,9 @@ api_key = os.environ["OPENAI_KEY"]
 openai.api_key = api_key
 
 # pinecone auth
-api_key = os.environ["PINE_CONE_API_KEY"]
-pinecone.init(api_key=api_key, environment="northamerica-northeast1-gcp")
-index = pinecone.Index("penn-courses")
+api_key = os.environ["MONGODB_URI"]
+client = MongoClient(api_key)
+index = client["course-embeddings"]["catalog"]
 
 token_limit = 2000  # Set your desired token limit
 score_lower_bound = 0.75  # Set your desired score lower bound
@@ -55,14 +55,28 @@ async def create_context_pinecone(question):
 
     fetch_response = {}
     if courses_in_question:
-        fetch_response = index.fetch(ids=courses_in_question)
+        fetch_response = index.find({
+            "$text": {
+                "$search": " ".join(courses_in_question)  # Assuming courses_in_question is a list of course names
+            }
+        })
 
-    matches = index.query(
-        vector=q_embedding,
-        top_k=20,
-        include_values=False,
-        include_metadata=True
-    )
+    # For nearest-neighbor search (assumes you're using MongoDB 4.4+ and have a 2dsphere index on 'embedding' field)
+    matches = index.aggregate([
+            {
+                "$search": {
+                    "index": "_id_",
+                    "knnBeta": {
+                        "vector": q_embedding,  # Example: Replace with your actual query vector
+                        "path": "embedding",  # Example: Replace with the name of your indexed field
+                        "k": 20
+                    }
+                }
+            },
+            {
+                "$limit": 20  # Limit the number of documents returned in the result set
+            }
+    ])
 
     # Construct relevant_courses from fetch_response
     relevant_courses = {}
@@ -82,13 +96,21 @@ async def create_context_pinecone(question):
             "tokens": details.get('metadata', {}).get('tokens', '')
         }
 
-        related_matches = index.query(
-            vector=details.get('values', {}),
-            top_k=5,
-            include_values=False,
-            include_metadata=True
-        )
-
+        related_matches = index.aggregate([
+            {
+                "$search": {
+                    "index": "_id_",
+                    "knnBeta": {
+                        "vector": q_embedding,  # Example: Replace with your actual query vector
+                        "path": "embedding",  # Example: Replace with the name of your indexed field
+                        "k": 5
+                    }
+                }
+            },
+            {
+                "$limit": 5  # Limit the number of documents returned in the result set
+            }
+        ])
         relevant_courses[course_id] = course
         related_matches_list.extend(related_matches.get('matches', []))
 
