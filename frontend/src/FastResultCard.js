@@ -22,26 +22,31 @@ const FastResultCard = ({ courses }) => {
   const bgColor = useColorModeValue("gray.100", "gray.700");
   const isMobile = useBreakpointValue({ base: true, md: false });
 
-   const renderProfessorsTable = (professors) => {
-    const parsedProfessors = JSON.parse(professors);
-
-    if (parsedProfessors.join() === [].join()) {
-      return (<><Box height="1rem" /><Text>Not Taught Fall 2023</Text></>);
+   const renderProfessorsTable = (professors) => { 
+    const setNum = (x) => {
+      if (x < 0) {
+        return null
+      } else {
+        return x
+      }
+    }
+    const parsedProfessors = professors;
+    if (parsedProfessors === NaN|| parsedProfessors.join() === [].join()) {
+      return (<><Box height="1rem" /><Text>Not Taught Fall 2024</Text></>);
     }
     if (parsedProfessors.join() === ["TBD"].join()) {
-      return (<><Box height="1rem" /><Text>Course Offered Fall 2023 -- Professor TBD</Text></>);
+      return (<><Box height="1rem" /><Text>Course Offered Fall 2024 -- Professor TBD</Text></>);
     }
-
     return isMobile ? (
       <>
         <Box height="1rem" />
         {parsedProfessors.map((professor, index) => (
           <VStack key={index} align="start" spacing={1}>
             <Text fontWeight="bold">{professor.name || '-'}</Text>
-            <Text>Instructor Quality: {professor.instructor_quality || '-'}</Text>
-            <Text>Course Quality: {professor.course_quality || '-'}</Text>
-            <Text>Difficulty: {professor.difficulty || '-'}</Text>
-            <Text>Work Required: {professor.work_required || '-'}</Text>
+            <Text>Instructor Quality: {setNum(professor.instructor_quality) || '-'}</Text>
+            <Text>Course Quality: {setNum(professor.course_quality) || '-'}</Text>
+            <Text>Difficulty: {setNum(professor.difficulty) || '-'}</Text>
+            <Text>Work Required: {setNum(professor.work_required) || '-'}</Text>
           </VStack>
         ))}
       </>
@@ -62,10 +67,10 @@ const FastResultCard = ({ courses }) => {
           {parsedProfessors.map((professor, index) => (
             <Tr key={index}>
               <Td>{professor.name || '-'}</Td>
-              <Td>{professor.instructor_quality || '-'}</Td>
-              <Td>{professor.course_quality || '-'}</Td>
-              <Td>{professor.difficulty || '-'}</Td>
-              <Td>{professor.work_required || '-'}</Td>
+              <Td>{setNum(professor.instructor_quality) || '-'}</Td>
+              <Td>{setNum(professor.course_quality) || '-'}</Td>
+              <Td>{setNum(professor.difficulty) || '-'}</Td>
+              <Td>{setNum(professor.work_required) || '-'}</Td>
             </Tr>
           ))}
         </Tbody>
@@ -96,7 +101,7 @@ const FastResultCard = ({ courses }) => {
             <Box>
               <Heading size="sm" mb="1">
                 <Link href={course.link}>
-                  {course.id.replace("-", " ") + ': ' + course.title}
+                  {course.department_code + course.course_code + ': ' + course.title}
                 </Link>
               </Heading>
               <Text style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
