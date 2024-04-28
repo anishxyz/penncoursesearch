@@ -1,5 +1,5 @@
 import redis
-import queryengine
+import backend.queryengine as queryengine
 
 
 def print_redis_memory_usage():

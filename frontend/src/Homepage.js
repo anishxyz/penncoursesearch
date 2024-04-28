@@ -59,9 +59,9 @@ const Homepage = () => {
                     q: searchTerm,
                 },
             });
-
-            const fastCourses = fastResponse.data.courses;
-            const context = fastResponse.data.context;
+            var resp = JSON.parse(JSON.stringify(fastResponse).replace("None",[])).data
+            const fastCourses = resp.sort(function (a,b) {return b[0] - a[0]}).map(x => x[1]);
+            const context = resp.sort(function (a,b) {return b[0] - a[0]}).map(x => x[1]);
 
             setFastSearchResults(fastCourses);
             setCurrContext(context);

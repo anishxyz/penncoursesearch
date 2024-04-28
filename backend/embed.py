@@ -4,10 +4,15 @@ import csv
 import tiktoken
 from dotenv import load_dotenv
 import os
+import certifi
 import pandas as pd
+import pandas as pd
+import numpy as np
+from urllib import parse
 
 # set up from environment
 load_dotenv()
+
 tokenizer = tiktoken.get_encoding("cl100k_base")
 
 # Access the API key environment variable
@@ -22,9 +27,10 @@ BATCH_SIZE = 10
 # Set the original filename
 filenameIn = "data/courses.csv"
 filenameOut =  "data/courses_embed.csv"
+WRITE = False
+
 # tokens used
 tot_tokens = 0
-
 
 # Load the CSV file
 with open(filenameOut, "w", newline="", encoding="utf-8") as writefile:
@@ -38,7 +44,6 @@ with open(filenameOut, "w", newline="", encoding="utf-8") as writefile:
         copybatch = []
         batch = []
         for row in reader:
-
             n_tokens = len(tokenizer.encode(row['ALL']))
             tot_tokens += n_tokens
             print(f"{row['Department Code']}, {row['Course Code']}, {n_tokens} Tokens Used")
@@ -50,11 +55,11 @@ with open(filenameOut, "w", newline="", encoding="utf-8") as writefile:
             # If the batch is full, generate embeddings for it and add them to the list
             if len(batch) == BATCH_SIZE:
                 response = openai.Embedding.create(
-                    input=batch, engine='text-embedding-ada-002'
+                    input=batch, engine='text-embedding-3-small'
                 )
 
                 # Add the embeddings to the list
-                copybatch = [x | {"embeddings":response["data"][0]["embedding"]} for x in copybatch]
+                copybatch = [x | {"embeddings":response["data"][i]["embedding"]} for i,x in enumerate(copybatch)]
                 writer.writerows(copybatch)
 
                 # Clear the batch
@@ -64,9 +69,10 @@ with open(filenameOut, "w", newline="", encoding="utf-8") as writefile:
         # If there are any remaining rows in the CSV, generate embeddings for them and add them to the list
         if len(batch) > 0:
             response = openai.Embedding.create(
-                input=batch, engine='text-embedding-ada-002'
+                input=batch, engine='text-embedding-3-small'
             )
-
+            #Upload to MongoDB
+            copybatch = [x | {"embeddings":response["data"][i]["embedding"]} for i,x in enumerate(copybatch)]
             # Add the embeddings to the list
             writer.writerows(copybatch)
 
