@@ -3,9 +3,9 @@
 A semantic search engine for the penn course database!
 
 ### /frontend
-React project with all frontend related code and docker config
-`npm install`
-`npm start`
+React project with all frontend related code and docker config  
+`npm install`  
+`npm start`  
 
 ### backend:  
 `app.py`: backend routes  
