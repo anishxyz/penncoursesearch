@@ -7,7 +7,7 @@ React project with all frontend related code and docker config
 `npm install`  
 `npm start`  
 
-### backend:  
+### /backend:  
 `app.py`: backend routes  
 `courses-scraper.py`: scrapes penn catalog for courses and saves it in courses.csv  
 `embed.py`: embeds course info into vector via OPENAI (model: `text-embedding-3-small`) and saves it in courses_embed.csv  
