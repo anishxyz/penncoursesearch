@@ -4,16 +4,16 @@ A semantic search engine for the penn course database!
 
 ### /frontend
 React project with all frontend related code and docker config
-npm install
-npm start
+`npm install`
+`npm start`
 
 ### backend:  
-app.py: backend routes  
-courses-scraper.py: scrapes penn catalog for courses and saves it in courses.csv
-embed.py: embeds course info into vector via OPENAI (model: `text-embedding-3-small`) and saves it in courses_embed.csv
-review-scraper.py: get course review information for a course & professor and saves it in courses_embed_profs.csv
-mongo_load.py: uploads embeddings from courses_embed_profs.csv into MongoDB
-query_engine: logic to query for results  
+`app.py`: backend routes  
+`courses-scraper.py`: scrapes penn catalog for courses and saves it in courses.csv  
+`embed.py`: embeds course info into vector via OPENAI (model: `text-embedding-3-small`) and saves it in courses_embed.csv  
+`review-scraper.py`: get course review information for a course & professor and saves it in courses_embed_profs.csv  
+`mongo_load.py`: uploads embeddings from courses_embed_profs.csv into MongoDB  
+`query_engine`: logic to query for results   
  
 db: mongoDB
 
