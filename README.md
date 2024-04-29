@@ -21,7 +21,7 @@ db: mongoDB
 - [x] Migrate from pinecone to alt vectordb (atlas?)
 - [x] Remove unused files
 - [x] Refactor query logic to be readble and modular
-- [x] detailed readme on running, stack etc. https://github.com/rohanshar77/dbkcourses
+- [x] detailed readme on running, stack etc.
 - [x] backend into its own directory (maybe move to fastapi?)
 - [ ] move hosting to porter.run
 - [ ] chron job to auto update db
